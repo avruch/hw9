@@ -1,28 +1,21 @@
-#ifndef IP_H
-#define IP_H
+#include "ip.h"
 
-#include "field.h"
 
 #define MASK_SEGMENT 2
 #define SEGMENTS 4
 
-class Ip : public Field {
-private:
-    unsigned int low;
-    unsigned int high;
 
-public:
-
-    Ip(String pattern);
-    bool set_value(String val){
-    	string* sub_strings;
+    Ip::Ip(String pattern):Field(pattern,IP){	
+    }
+    bool Ip::set_value(String val){
+    	String* sub_strings;
         size_t size=0;
-    	split("/",&sub_strings,&size);
+    	val.split("/",&sub_strings,&size);
     	if(size!=2){
-			return false
+			return false;
     	}
-    	int num_bits_rule=sub_strings[1].trim.to_integer();
-    	int IP_mask=sub_strings[0].trim.to_integer();
+    	int num_bits_rule=sub_strings[1].trim().to_integer();
+    	int IP_mask=sub_strings[0].trim().to_integer();
     	if(num_bits_rule==0){
     		low=0;
     		high=0xFFFFFFFF;
@@ -31,21 +24,20 @@ public:
     	int mask=1<<num_bits_rule;
     	mask--;
     	low=(IP_mask)&(~mask);
-    	printf("low value IP returned %u \n",&low);
-    	high=(ip_mask)|mask;
-    	printf("high value IP returned %u \n",&high);
+    	printf("low value IP returned %u \n",low);
+    	high=(IP_mask)|mask;
+    	printf("high value IP returned %u \n",high);
     	return true;
     	}
-    }
-    bool match_value(String val) const{
+
+    bool Ip::match_value(String val) const{
     	int value=val.to_integer();
-    	if ((val<low)||(val>high)){
+    	if (((val.to_integer())<low)||((val.to_integer())>high)){
     		return false;
     	}
     	return true;
     }
-};
 
 
 
-#endif
+

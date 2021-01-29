@@ -1,27 +1,27 @@
 #include "string.h"
+#include "ip.h"
 #include <stddef.h>
 #include <iostream>
+#include <cstring>
 
-class String {
-    char *data;
-    size_t length;
-
-public:
+#define BYTE_MAX_VAL 255
+#define BYTE_MIN_VAL 0
+#define MAX_SHIFT_VAL 24
+#define SIZE_OF_BYTE 8
 
     /**
      * @brief Initiates an empty string
      */
-    String(){
-        printf("string default constructor\n");
+    String::String(){
         length=0;
         data=NULL;
+    return;
     }
 
     /**
      * @brief Initiates string from other string
      */
-    String(const String &str){
-        printf("string copy constructor\n");
+    String::String(const String &str){
         length=str.length;
         if (!length){
             data=NULL;
@@ -36,12 +36,11 @@ public:
     /**
      * @brief Initiates a string from char array
      */
-    String(const char *str){
-         printf("string from char array constructor\n");
+    String::String(const char *str){
         if(!str){
-            date=NULL;
+            data=NULL;
             length=0;
-            return
+            return;
         }
         length=strlen(str);
         data=new char[length+1];
@@ -56,9 +55,8 @@ public:
     }
 
 
-    ~String(){
-         printf("string default d'tor\n");
-        if(data){
+    String::~String(){
+        if(NULL!=data){
             delete[] data;
         }
     }
@@ -72,8 +70,7 @@ public:
 
      * @brief Changes this from String
      */
-    String& operator=(const String &rhs){
-         printf("string operator= from string\n");
+    String& String::operator=(const String &rhs){
         delete[] data;
         length=rhs.length;
         if(!length){
@@ -89,8 +86,7 @@ public:
     /**
      * @brief Changes this from char array
      */
-    String& operator=(const char *str){
-          printf("string operator= from char array\n");
+    String& String::operator=(const char *str){
         delete[] data;
         length=strlen(str);
         if(!length){
@@ -109,33 +105,31 @@ public:
      * @brief Returns true iff the contents of this equals to the
      * contents of rhs
      */
-    bool equals(const String &rhs) const {
-          printf("string equals from string\n");
-        if (rhs.length!=this.length){
+    bool String::equals(const String &rhs) const {
+        printf("this->length=%d,rhs.data=%s",this->length,rhs.data);
+        if ((rhs.length)!=(this->length)){
+            printf("LENGTH WRONG\n");
             return false;
         }
-        if(!strncmp(rhs,this.data,this.length)){
+        if((strncmp(rhs.data,this->data,this->length))){
+            return false;
+        }
+        
             return true;
-        }
-        else{
-            return false;
-        }
+        
     }
 
     /**
      * @brief Returns true iff the contents of this equals to rhs
      */
-    bool equals(const char *rhs) const{
-         printf("string equals from char array\n");
-        if(strlen(rhs)=!this.length) {
+    bool String::equals(const char *rhs) const{
+        if(strlen(rhs)!=(this->length)) {
             return false;
         }
-        if(strncmp(rhs,this.data,this.length)) {
+        if(strncmp(rhs,this->data,this->length)) {
             return true;
         }
-        else{
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -145,57 +139,87 @@ public:
      * @note If "output" is set to NULL, do not allocated memory, only
      * compute "size".
      */
-    void split(const char *delimiters, String **output, size_t *size) const{
-         printf("string split function with delimiters %s \n",&delimiters);
-        string orig_str(this.data);
-        unsigned int length_str=orig_str.length , length_delimiters=strlen(delimiters);
+    void String::split(const char *delimiters, String **output, size_t *size) const {
+         printf("string split function with delimiters %s \n",delimiters);
+         if(NULL==this->data){
+            return;
+         }
+        char orig_str [this->length+1];
+        strncpy(orig_str,this->data,length);
+        orig_str[length]='\0';
+        unsigned int length_str=this->length , length_delimiters=strlen(delimiters);
         unsigned int num_of_strings=1;
         unsigned int begin_index=0, sub_string_index=0;
-        //fist we only count the number of sub strings to create
-       for (int i=0;i<length_str;i++)_{
-            for(int j=0;j<length_delimiters;j++){
+        //first we only count the number of sub strings to create
+       for (int i=0 ; i < length_str ; i++) {
+            for(int j=0 ; j < length_delimiters ; j++){
                 if (orig_str[i]==delimiters[j]){
                     num_of_strings++;
                  }
             }
         }
-         printf("num of strings = %u string is %s \n",&num_of_strings,&orig_str.data);
         *size=num_of_strings;
-        if(!output){
+       if(NULL == output){
             return;
         }
-        *output=new string[num_of_strings]; 
-        for (int i=0;i<length_str;i++)_{
-            for(int j=0;j<length_delimiters;j++){
+        (*output) = new String[num_of_strings]; 
+        for (unsigned int i=0;i<length_str;i++) {
+            for(unsigned int j=0;j<length_delimiters;j++){
                 if (orig_str[i]==delimiters[j]){
                     orig_str[i]='\0';
-                    (*output)[sub_string_index]=string(orig_str+begin_index);
+                    (*output)[sub_string_index]=String((const char*) orig_str[begin_index]);
+                    printf("output[sub_string_index]=%s\n",&output[sub_string_index]);
                     sub_string_index++;
                     begin_index=i+1;
                  }
             
             }
         }
-        (*output)[sub_string_index]=string(orig_str+begin_index);
+        (*output)[sub_string_index]=String((const char*) orig_str[begin_index]);
+        delete[] orig_str;
         return;
     }
 
     /**
      * @brief Try to convert this to an integer. Returns 0 on error.
      */
-    int to_integer() const;
+    int String::to_integer() const{
+        String* sub_strings;
+        size_t size=0;
+        int res=0;
+        String *curr_string;
+        split(".",&sub_strings,&size);
+        if (size==SEGMENTS){
+            for( int sub_string_index=0;sub_string_index<size;sub_string_index++){
+                strcpy(curr_string->data,((sub_strings[sub_string_index]).data));
+               int curr_num= atoi((char*)(curr_string));
+               if ((curr_num>BYTE_MAX_VAL)||(curr_num<BYTE_MIN_VAL)){
+                delete[] sub_strings;
+                return 0;
+               }
+               res+=curr_num<<(MAX_SHIFT_VAL-(SIZE_OF_BYTE*sub_string_index));
+           }
+           delete[] sub_strings;
+           return res;
+        } 
+         strcpy((char*)curr_string, this->data);
+         res=atoi((char*)curr_string);
+         delete[] curr_string;
+         return res;
+    }
 
     /**
      * @brief Remove any leading or trailing white-spaces.
      * Does not change this.
      */
-    String trim() const{
-        printf("string trim func\n", &string_to_copy);
-        if(this.data){
+    String String::trim() const{
+        if(this->data){
             return NULL;
         }
-        string orig_str(this.data);
-        int i=0, j=this.length-1;
+        char orig_str[this->length+1];
+        strncpy(orig_str,this->data,length);
+         orig_str[length]='\0';
+        int i=0, j=this->length-1;
         while(orig_str[i]==' '){
             i++;
         }
@@ -206,18 +230,18 @@ public:
             return NULL;
         }
         else{
-            char* string_to _copy[j-i+1];
+            char string_to_copy[j-i+1];
             for(int k=0;k<(j-i+1);k++){
                 string_to_copy[k]=orig_str[i+k];
             }
-            string_to _copy[j-i]='\0';
-            printf("string to copy in trim func is %s", &string_to_copy);
-            string str(string_to_copy);
+            string_to_copy[j-i]='\0';
+            printf("string to copy in trim func is %s", string_to_copy);
+            String str(string_to_copy);
             return str;
         }
 
 
     }
-}
+
 
 
